@@ -1,51 +1,94 @@
 
 <!doctype html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>blablabla</title>
-        <script src="libwabt.js"></script>
-    </head>
+	<head>
+		<meta charset="utf-8">
+		<title>blablabla</title>
+		<script src="libwabt.js"></script>
+	</head>
 <body>
+<div style="font-family: monospace;">
+	<br><br>
+	This is the minimum of code example extracted from the original <a href="https://github.com/WebAssembly/wabt/tree/master/demo/">WABT demo</a>.<br>
+	It contains all that is needed for compile wast (webassembly text format) to wasm, its binary equivalent, and executing it in the browser.<br>
+	<br>
+	Required for operation is the javascript library <a href="https://github.com/WebAssembly/wabt/tree/master/demo/">libwabt.js</a>.
+</div>
+
+<div id="Example" style="white-space: pre; font-family: monospace;">
+---------------------------------------------------------------------------------------------------------------------------------------
+	var Flags = {  	"exceptions": false,
+					"mutable_globals": true,
+					"sat_float_to_int":false,
+					"sign_extension":false,
+					"simd":false,
+					"threads":false,
+					"multi_value":false,
+					"tail_call":false     }
+
+	Code = 
+	`
+	(module
+	(func $addTwo (param i32 i32) (result i32)
+		get_local 0
+		get_local 1
+		i32.add)
+	(export "addTwo" (func $addTwo)))
+	`
+
+	let Module = WabtModule().parseWat('test.wast',Code, Flags);
+	Module.resolveNames();
+	Module.validate(Flags);
+
+	let Output = Module.toBinary({log: true, write_debug_names:true});
+	let Binary = Output.buffer;
+
+	let wasm = new WebAssembly.Module(Binary);
+	const Instance = new WebAssembly.Instance(wasm, {});
+	const { addTwo } = Instance.exports;
+---------------------------------------------------------------------------------------------------------------------------------------
+
+	The result of the wasm function addTwo(21,6) is: </div>
+
 <script>
 
 
-var Features = {  "exceptions": false,
-                  "mutable_globals": true,
-                  "sat_float_to_int":false,
-                  "sign_extension":false,
-                  "simd":false,
-                  "threads":false,
-                  "multi_value":false,
-                  "tail_call":false     }
+var Flags = {  	"exceptions": false,
+				"mutable_globals": true,
+				"sat_float_to_int":false,
+				"sign_extension":false,
+				"simd":false,
+				"threads":false,
+				"multi_value":false,
+				"tail_call":false     }
 
 var module = WabtModule().parseWat('test.wast',
 
 `
 (module
 (func $addTwo (param i32 i32) (result i32)
-    get_local 0
-    get_local 1
-    i32.add)
+	get_local 0
+	get_local 1
+	i32.add)
 (export "addTwo" (func $addTwo)))
-`, Features);
+`, Flags);
 
-    module.resolveNames();
-    module.validate(Features);
-    var binaryOutput = module.toBinary({log: true, write_debug_names:true});
-    binaryBuffer = binaryOutput.buffer;
+	module.resolveNames();
+	module.validate(Flags);
+	var binaryOutput = module.toBinary({log: true, write_debug_names:true});
+	binaryBuffer = binaryOutput.buffer;
 
-    let wasm = new WebAssembly.Module(binaryBuffer);
-    js = `const wasmInstance = new WebAssembly.Instance(wasmModule, {});
-        const { addTwo } = wasmInstance.exports;`
-    
-    const wasmInstance = new WebAssembly.Instance(wasm, {});
-    const { addTwo } = wasmInstance.exports;
-    // let fn = new Function('wasmModule', 'console', js + '//# sourceURL=demo.js');
-    // fn(wasm)
-    // const wasmInstance =    new WebAssembly.Instance(wasmModule, {});
-    // const { addTwo } = wasmInstance.exports;
-    document.body.innerText = addTwo(1,3)
+	let wasm = new WebAssembly.Module(binaryBuffer);
+	js = `const wasmInstance = new WebAssembly.Instance(wasmModule, {});
+		const { addTwo } = wasmInstance.exports;`
+	
+	const wasmInstance = new WebAssembly.Instance(wasm, {});
+	const { addTwo } = wasmInstance.exports;
+	// let fn = new Function('wasmModule', 'console', js + '//# sourceURL=demo.js');
+	// fn(wasm)
+	// const wasmInstance =    new WebAssembly.Instance(wasmModule, {});
+	// const { addTwo } = wasmInstance.exports;
+	document.body.innerText = addTwo(1,3)
 
 </script>
 </body>
