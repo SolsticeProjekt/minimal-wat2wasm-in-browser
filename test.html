@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="libwabt.js"></script>
+    </head>
+<body>
+
+<div style="font-family: monospace;">
+    <br><br>
+    This is the minimum of code example extracted from the original <a href="https://github.com/WebAssembly/wabt/tree/master/demo/">WABT demo</a>.<br>
+    It contains all that is needed for compile wast (webassembly text format) to wasm, its binary equivalent, and executing it in the browser.<br>
+    <br>
+    Required for operation is the javascript library <a href="https://github.com/WebAssembly/wabt/tree/master/demo/">libwabt.js</a>.
+</div>
+<div id="Example" style="white-space: pre; font-family: monospace;">
+---------------------------------------------------------------------------------------------------------------------------------------
+    var Flags = 
+    //  exceptions  mutable_globals     sat_float_to_int    sign_extension  simd    threads     multi_value     tail_call
+    [   false,      true,               false,              false,          false,  false,      false,          false]
+
+
+    Code = 
+    `
+    (module
+    (func $addTwo (param i32 i32) (result i32)
+        get_local 0
+        get_local 1
+        i32.add)
+    (export "addTwo" (func $addTwo)))
+    `
+
+    let Module = WabtModule().parseWat('test.wast',Code, Flags);
+    Module.resolveNames();
+    Module.validate(Flags);
+
+    let Output = Module.toBinary({log: true, write_debug_names:true});
+    let Binary = Output.buffer;
+
+    let wasm = new WebAssembly.Module(Binary);
+    const Instance = new WebAssembly.Instance(wasm, {});
+    const { addTwo } = Instance.exports;
+---------------------------------------------------------------------------------------------------------------------------------------
+
+    The result of the wasm function addTwo(21,6) is: </div>
+
+<script>
+
+    var Flags = 
+    //  exceptions  mutable_globals     sat_float_to_int    sign_extension  simd    threads     multi_value     tail_call
+    [   false,      true,               false,              false,          false,  false,      false,          false]
+
+
+    Code = 
+    `
+    (module
+    (func $addTwo (param i32 i32) (result i32)
+        get_local 0
+        get_local 1
+        i32.add)
+    (export "addTwo" (func $addTwo)))
+    `
+
+    let Module = WabtModule().parseWat('test.wast',Code, Flags);
+    Module.resolveNames();
+    Module.validate(Flags);
+
+    let Output = Module.toBinary({log: true, write_debug_names:true});
+    let Binary = Output.buffer;
+
+    let wasm = new WebAssembly.Module(Binary);
+    const Instance = new WebAssembly.Instance(wasm, {});
+    const { addTwo } = Instance.exports;
+
+    Example.innerText += addTwo(21,6)
+
+</script>
+</body>
+</html>
